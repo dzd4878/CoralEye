@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#071b22">
+    <title>CoralEye | Reef health monitor</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+</head>
+<body>
+    <main id="dashboard">
+        <aside id="sidebar">
+            <div class="brand-mark" aria-hidden="true">◈</div>
+            <p class="eyebrow">REEF MONITORING</p>
+            <h1>Coral<span>Eye</span></h1>
+            <p class="intro">A live view of reef conditions around Bali.</p>
+
+            <section class="zone-panel" aria-live="polite">
+                <h2>Zone analysis</h2>
+                <div id="zone-info">
+                    <p class="empty-state">Select a colored zone on the map to explore its health and environmental readings.</p>
+                </div>
+            </section>
+
+            <section class="legend" aria-label="Health score legend">
+                <h2>Health score</h2>
+                <div><span class="legend-swatch healthy"></span>Healthy <small>&lt; 1.5</small></div>
+                <div><span class="legend-swatch risk"></span>At risk <small>1.5–2.49</small></div>
+                <div><span class="legend-swatch severe"></span>Severely affected <small>≥ 2.5</small></div>
+            </section>
+            <p class="sample-note">Demonstration readings · Bali, Indonesia</p>
+        </aside>
+        <section class="map-panel" aria-label="Interactive coral reef health map">
+            <div class="map-label"><span class="live-dot"></span> BALI REEF ZONES</div>
+            <div id="map"></div>
+            <p class="map-credit">Map data © OpenStreetMap contributors</p>
+        </section>
+    </main>
+
+    <script>
+        const map = L.map('map', { zoomControl: false }).setView([-8.635, 115.235], 11);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Sample sensor readings for the dashboard demo. Replace with collected GeoJSON data.
+        window.rawData = {
+            type: 'FeatureCollection',
+            features: [
+                { type: 'Feature', properties: { score: 0.8, temperature: 27.1, lumen: 410 }, geometry: { type: 'Point', coordinates: [115.205, -8.635] } },
+                { type: 'Feature', properties: { score: 1.1, temperature: 27.4, lumen: 435 }, geometry: { type: 'Point', coordinates: [115.209, -8.638] } },
+                { type: 'Feature', properties: { score: 1.3, temperature: 27.2, lumen: 420 }, geometry: { type: 'Point', coordinates: [115.212, -8.632] } },
+                { type: 'Feature', properties: { score: 1.9, temperature: 28.2, lumen: 520 }, geometry: { type: 'Point', coordinates: [115.235, -8.625] } },
+                { type: 'Feature', properties: { score: 2.2, temperature: 28.5, lumen: 545 }, geometry: { type: 'Point', coordinates: [115.239, -8.629] } },
+                { type: 'Feature', properties: { score: 2.0, temperature: 28.1, lumen: 510 }, geometry: { type: 'Point', coordinates: [115.242, -8.622] } },
+                { type: 'Feature', properties: { score: 2.8, temperature: 29.4, lumen: 680 }, geometry: { type: 'Point', coordinates: [115.267, -8.651] } },
+                { type: 'Feature', properties: { score: 3.1, temperature: 29.7, lumen: 710 }, geometry: { type: 'Point', coordinates: [115.271, -8.655] } },
+                { type: 'Feature', properties: { score: 2.7, temperature: 29.2, lumen: 665 }, geometry: { type: 'Point', coordinates: [115.275, -8.648] } },
+                { type: 'Feature', properties: { score: 0.9, temperature: 26.9, lumen: 390 }, geometry: { type: 'Point', coordinates: [115.185, -8.608] } },
+                { type: 'Feature', properties: { score: 1.2, temperature: 27.3, lumen: 425 }, geometry: { type: 'Point', coordinates: [115.189, -8.612] } },
+                { type: 'Feature', properties: { score: 2.6, temperature: 29.1, lumen: 640 }, geometry: { type: 'Point', coordinates: [115.293, -8.619] } }
+            ]
+        };
+    </script>
+    <script src="app.js"></script>
+</body>
+
