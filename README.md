@@ -1,18 +1,10 @@
-# CoralEye 🪸🤖
-**A Decentralized Computer Vision Framework for Proactive Thermal Stress Diagnostics in the Coral Triangle.**
-
-This repository contains the official code, weights, and evaluation scripts for the CoralEye research paper.
-
-## Overview
-Current coral monitoring suffers from a "manual-annotation bottleneck." CoralEye resolves this by deploying an edge-optimized Deep Learning framework (MobileNetV2) capable of categorizing coral health in real-time. It moves beyond binary "live/dead" metrics by implementing a 5-class (C1-C5) physiological taxonomy to identify early-stage *paling* (C2).
-
-### Key Features
-* **Edge Optimized:** Achieves ~45ms inference latency on standard consumer hardware (no cloud needed).
-* **Physics-Informed:** Includes a custom `SunGlintCorrectionLayer` based on the Cox-Munk wave-slope distribution to normalize aerial UAV imagery.
-* **High Accuracy:** Validated at 99.2% accuracy on the Benthic Habitat Data (BHD) dataset.
-
-## Repository Structure
-* `train_coraleye.py`: The main training loop including the custom SSGCL physics layer.
-* `evaluate_metrics.py`: Script to generate the Confusion Matrix and run latency benchmarking.
-* `coral_eye_v2_model_official.keras`: The pre-trained weights for deployment.
-
+<!DOCTYPE html>
+<head>
+  <Title>CoralEye</Title>
+  <h3> a project by Gabriel-Andre Exbrayat, sophmore at the french school of Bali, Louis-Antoine de Bougainville</h3>
+</head>
+<body>
+  <p>This research as for main objective to relieve the restoration and conservation effort by reducing the manpower needed for monitoring, traking in account all possible budget and material limitation that may affect the population of the sone that aree the ost affected (i.e. the coral triangle countries).
+  The research is based on machine learning, and on a BHD dataset. It hasnt been trained enough or put under enough constraint to be considered a ready to be used convenetionaly system but on that BHD dataset he reached 97% accuracy even if I need to consider the possibility of overfitting </p>
+<div><iframe src="v1_covered_e1d7d71a-7013-440f-a65d-5bf63d6c06c5" width="100" height"600px">This browser does not support absolute bangers of PDFs</iframe>iframes></div>
+</body>
