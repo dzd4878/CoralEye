@@ -7,8 +7,6 @@
     <title>CoralEye | Reef health monitor</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 </head>
 <body>
     <main id="dashboard">
@@ -31,7 +29,58 @@
                 <div><span class="legend-swatch risk"></span>At risk <small>1.5–2.49</small></div>
                 <div><span class="legend-swatch severe"></span>Severely affected <small>≥ 2.5</small></div>
             </section>
-            <p class="sample-note">Demonstration readings · Bali, Indonesia</p>
+            <section class="contribution-panel" aria-labelledby="contribute-title">
+                <div class="contribution-heading">
+                    <p class="contribution-kicker">COMMUNITY REPORT</p>
+                    <h2 id="contribute-title">Add a reef reading</h2>
+                    <p class="contribution-intro">Log a field observation at an offshore location.</p>
+                </div>
+                <form id="contribution-form">
+                    <div class="form-group">
+                        <label class="form-label" for="coralImage">Reef photo <span>Required</span></label>
+                        <input type="file" id="coralImage" name="photo" class="form-input-file" accept="image/*" required>
+                        <img id="image-preview" class="image-preview" alt="Selected reef photo preview" hidden>
+                        <p class="field-hint">Preview only; the photo is not uploaded.</p>
+                    </div>
+
+                    <fieldset class="form-group form-fieldset">
+                        <legend class="form-label">Conditions</legend>
+                        <div class="input-row">
+                            <label class="form-field" for="temperature">
+                                <span>Temperature °C</span>
+                                <input type="number" id="temperature" name="temperature" min="0" max="45" step="0.1" placeholder="27.5" required>
+                            </label>
+                            <label class="form-field" for="lumen">
+                                <span>Light level lux</span>
+                                <input type="number" id="lumen" name="lumen" min="0" step="1" placeholder="420" required>
+                            </label>
+                        </div>
+                        <label class="form-field score-field" for="score">
+                            <span>Health score <small>0 to 3</small></span>
+                            <input type="number" id="score" name="score" min="0" max="3" step="0.1" placeholder="1.2" required>
+                            <small class="field-hint">Enter the observed score manually; no model is connected yet.</small>
+                        </label>
+                    </fieldset>
+
+                    <fieldset class="form-group form-fieldset">
+                        <legend class="form-label">Location</legend>
+                        <div class="input-row">
+                            <label class="form-field" for="latitude">
+                                <span>Latitude</span>
+                                <input type="number" id="latitude" name="latitude" min="-90" max="90" step="any" placeholder="-8.65" required>
+                            </label>
+                            <label class="form-field" for="longitude">
+                                <span>Longitude</span>
+                                <input type="number" id="longitude" name="longitude" min="-180" max="180" step="any" placeholder="115.27" required>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <button class="submit-report" type="submit">Add sea marker</button>
+                    <p id="contribution-status" class="contribution-status" role="status" aria-live="polite"></p>
+                    <p class="field-hint storage-note">Reports are saved in this browser only.</p>
+                </form>
+            </section>
         </aside>
         <section class="map-panel" aria-label="Interactive coral reef health map">
             <div class="map-label"><span class="live-dot"></span> BALI REEF ZONES</div>
@@ -40,33 +89,10 @@
         </section>
     </main>
 
-    <script>
-        const map = L.map('map', { zoomControl: false }).setView([-8.635, 115.235], 11);
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
-        }).addTo(map);
-
-        // Sample sensor readings for the dashboard demo. Replace with collected GeoJSON data.
-        window.rawData = {
-            type: 'FeatureCollection',
-            features: [
-                { type: 'Feature', properties: { score: 0.8, temperature: 27.1, lumen: 410 }, geometry: { type: 'Point', coordinates: [115.205, -8.635] } },
-                { type: 'Feature', properties: { score: 1.1, temperature: 27.4, lumen: 435 }, geometry: { type: 'Point', coordinates: [115.209, -8.638] } },
-                { type: 'Feature', properties: { score: 1.3, temperature: 27.2, lumen: 420 }, geometry: { type: 'Point', coordinates: [115.212, -8.632] } },
-                { type: 'Feature', properties: { score: 1.9, temperature: 28.2, lumen: 520 }, geometry: { type: 'Point', coordinates: [115.235, -8.625] } },
-                { type: 'Feature', properties: { score: 2.2, temperature: 28.5, lumen: 545 }, geometry: { type: 'Point', coordinates: [115.239, -8.629] } },
-                { type: 'Feature', properties: { score: 2.0, temperature: 28.1, lumen: 510 }, geometry: { type: 'Point', coordinates: [115.242, -8.622] } },
-                { type: 'Feature', properties: { score: 2.8, temperature: 29.4, lumen: 680 }, geometry: { type: 'Point', coordinates: [115.267, -8.651] } },
-                { type: 'Feature', properties: { score: 3.1, temperature: 29.7, lumen: 710 }, geometry: { type: 'Point', coordinates: [115.271, -8.655] } },
-                { type: 'Feature', properties: { score: 2.7, temperature: 29.2, lumen: 665 }, geometry: { type: 'Point', coordinates: [115.275, -8.648] } },
-                { type: 'Feature', properties: { score: 0.9, temperature: 26.9, lumen: 390 }, geometry: { type: 'Point', coordinates: [115.185, -8.608] } },
-                { type: 'Feature', properties: { score: 1.2, temperature: 27.3, lumen: 425 }, geometry: { type: 'Point', coordinates: [115.189, -8.612] } },
-                { type: 'Feature', properties: { score: 2.6, temperature: 29.1, lumen: 640 }, geometry: { type: 'Point', coordinates: [115.293, -8.619] } }
-            ]
-        };
-    </script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="app.js"></script>
 </body>
+</html>
 
