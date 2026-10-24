@@ -308,3 +308,111 @@ h1 span { color: #52d9bd; }
     cursor: pointer;
     transition: background 140ms ease, transform 140ms ease;
 }
+
+.submit-report:hover { background: #19927f; }
+.submit-report:active { transform: translateY(1px); }
+.submit-report:focus-visible { outline: 2px solid #8de6d4; outline-offset: 2px; }
+
+.contribution-status {
+    min-height: 0;
+    margin: -5px 0 0;
+    color: #f5b942;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.contribution-status.is-success { color: #69cdbd; }
+.contribution-status:empty { display: none; }
+.storage-note { margin-top: -9px; }
+
+.legend-swatch {
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+}
+
+.healthy { background: #19c7a3; }
+.risk { background: #f5b942; }
+.severe { background: #f06464; }
+
+.sample-note {
+    margin: auto 0 0;
+    padding-top: 18px;
+    color: #6e898b;
+    font-size: 10px;
+}
+
+.map-panel {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 100vh;
+    background: #10282f;
+}
+
+#map {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: #10282f;
+}
+
+.map-label {
+    position: absolute;
+    z-index: 400;
+    top: 22px;
+    left: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 14px;
+    border: 1px solid rgba(189, 221, 219, 0.15);
+    border-radius: 8px;
+    background: rgba(8, 28, 34, 0.9);
+    color: #e5f1ef;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.1px;
+    pointer-events: none;
+}
+
+.live-dot { width: 7px; height: 7px; }
+
+.map-credit {
+    position: absolute;
+    z-index: 400;
+    right: 10px;
+    bottom: 0;
+    margin: 0;
+    padding: 4px 7px;
+    border-radius: 4px 4px 0 0;
+    background: rgba(8, 28, 34, 0.82);
+    color: #d3e1df;
+    font-size: 9px;
+    pointer-events: none;
+}
+
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background: #102c33;
+    color: #eaf4f3;
+}
+
+.leaflet-popup-content { line-height: 1.7; }
+.leaflet-popup-content strong { color: #55d9bd; }
+
+@media (max-width: 700px) {
+    #dashboard { flex-direction: column; }
+    #sidebar {
+        flex: 0 0 auto;
+        min-height: auto;
+        padding: 22px 20px 18px;
+    }
+    .eyebrow { margin-top: 17px; }
+    .intro { margin-bottom: 18px; }
+    .zone-panel { padding: 14px 0; }
+    .legend { display: none; }
+    .sample-note { display: none; }
+    .map-panel { flex: 1 1 auto; min-height: 55vh; }
+    .map-label { top: 12px; left: 12px; }
+}
