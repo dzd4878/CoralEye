@@ -24,27 +24,28 @@ function showMessage(message) {
 }
 
 const formatMetric = (value, digits) => (
-    value === null ? 'N/A' : value.toFixed(digits)
+    value === null || !Number.isFinite(value) ? 'N/A' : value.toFixed(digits)
 );
 
 function getZoneStatus(score) {
-    if (score < 2) return { label: 'Healthy', color: '#19c7a3' };
-    if (score <1) return { label: 'At risk', color: '#f5b942' };
-    return { label: 'Severely affected', color: '#f06464' };
+    if (!Number.isFinite(score)) return { label: 'Unknown class', color: '#8fa9aa' };
+    if (score < 0.5) return { label: 'Severely affected (Dead)', color: '#f06464' };
+    if (score < 1.5) return { label: 'At risk (Bleached)', color: '#f5b942' };
+    return { label: 'Healthy', color: '#19c7a3' };
 }
 
 function getModelClassStatus(classScore) {
     if (!Number.isFinite(classScore) || classScore < 0 || classScore > 2) {
         return { label: 'Unknown class', color: '#8fa9aa' };
     }
-    if (classScore < 0.5) return { label: 'Severely affected', color: '#f06464' };
-    if (classScore < 1.5) return { label: 'At risk', color: '#f5b942' };
+    if (classScore < 0.5) return { label: 'Severely affected (Dead)', color: '#f06464' };
+    if (classScore < 1.5) return { label: 'At risk (Bleached)', color: '#f5b942' };
     return { label: 'Healthy', color: '#19c7a3' };
 }
 
 function getHealthClass(score) {
-    if (score = 2) return 2;
-    if (score = 1) return 1;
+    if (score >= 1.5) return 2;
+    if (score >= 0.5) return 1;
     return 0;
 }
 
@@ -91,8 +92,8 @@ function addCommunityMarker(report, focus = false) {
     marker.bindPopup(
         '<strong>Community report</strong><br>' +
         (modelPrediction
-                        ? `AI health score: ${modelPrediction.expectedClass.toFixed(2)} (${modelStatus.label})<br>` +
-                            `Most likely class: ${modelPrediction.predictedClass} (${getModelClassStatus(modelPrediction.predictedClass).label})<br>` +
+            ? `AI health score: ${modelPrediction.expectedClass.toFixed(2)} (${modelStatus.label})<br>` +
+              `Most likely class: ${modelPrediction.predictedClass} (${getModelClassStatus(modelPrediction.predictedClass).label})<br>` +
               `Top class probability: ${(modelPrediction.topProbability * 100).toFixed(1)}%<br>` +
               `Class probabilities: ${modelPrediction.probabilities.map((value, index) => `${index}: ${(value * 100).toFixed(1)}%`).join(', ')}<br>`
             : `Health: ${report.score.toFixed(1)}<br>`) +
@@ -138,7 +139,7 @@ function renderZoneInfo(properties) {
             </div>
             <div class="metric-card">
                 <span class="metrics-title">Light level</span>
-                <strong class="metrics-value">${formatMetric(properties.meanLumen, 0)}<small> lm</small></strong>
+                <strong class="metrics-value">${formatMetric(properties.meanLumen, 0)}<small> lux</small></strong>
             </div>
             <p class="data-count">Based on ${properties.dataCount} sensor reading${properties.dataCount === 1 ? '' : 's'}</p>
         </div>`;
@@ -174,9 +175,9 @@ function renderReadings(rawData, landMask) {
 
             marker.bindPopup(
                 '<strong>Offshore reading</strong><br>' +
-                `Health: ${properties.score.toFixed(2)}<br>` +
+                `Health: ${properties.score.toFixed(2)} (${getZoneStatus(properties.score).label})<br>` +
                 `Temperature: ${formatMetric(properties.temperature, 1)} °C<br>` +
-                `Light: ${formatMetric(properties.lumen, 0)} lm`
+                `Light: ${formatMetric(properties.lumen, 0)} lux`
             );
             marker.on('click', () => renderZoneInfo({
                 meanScore: properties.score,
@@ -240,12 +241,12 @@ function renderReadings(rawData, landMask) {
             style: (feature) => {
                 const classScore = feature.properties.meanClass;
                 return {
-                    fillColor: feature.properties.meanClass === null
+                    fillColor: classScore === null
                         ? '#65727d'
                         : getModelClassStatus(classScore).color,
                     color: '#d8e5e9',
                     weight: 0.7,
-                    fillOpacity: feature.properties.meanClass === null ? 0.08 : 0.72
+                    fillOpacity: classScore === null ? 0.08 : 0.72
                 };
             },
             onEachFeature: (feature, layer) => {
@@ -256,9 +257,9 @@ function renderReadings(rawData, landMask) {
                 layer.bindPopup(
                     `<strong>${meanStatus.label}</strong><br>` +
                     `Avg health: ${properties.meanScore.toFixed(2)}<br>` +
-                    `Mean health score: ${properties.meanClass.toFixed(2)}<br>` +
+                    `Mean health class: ${properties.meanClass.toFixed(2)}<br>` +
                     `Avg temperature: ${formatMetric(properties.meanTemp, 1)} °C<br>` +
-                    `Avg light: ${formatMetric(properties.meanLumen, 0)} lm<br>` +
+                    `Avg light: ${formatMetric(properties.meanLumen, 0)} lux<br>` +
                     `Sensor readings: ${properties.dataCount}`
                 );
                 layer.on('click', () => renderZoneInfo(properties));
@@ -333,7 +334,7 @@ let coralModel = null;
 if (typeof tf === 'undefined') {
     scoreHelp.textContent = 'TensorFlow.js did not load. Enter the observed score manually.';
 } else {
-    tf.loadGraphModel('model.json')
+    tf.loadGraphModel('./model.json')
         .then((model) => {
             coralModel = model;
             scoreInput.required = false;
@@ -396,12 +397,15 @@ contributionForm.addEventListener('submit', async (event) => {
         try {
             await photoPreview.decode();
             inputTensor = tf.browser.fromPixels(photoPreview)
-                .resizeNearestNeighbor([224, 224])
+                .resizeBilinear([224, 224])
                 .expandDims(0)
                 .toFloat();
             prediction = coralModel.execute(inputTensor);
             const predictionTensor = Array.isArray(prediction) ? prediction[0] : prediction;
-            const probabilities = Array.from(await predictionTensor.data());
+            const rawProbs = Array.from(await predictionTensor.data());
+
+            // Remap alphabetical training order [Bleached, Dead, Healthy] -> severity order [Dead (0), Bleached (1), Healthy (2)]
+            const probabilities = [rawProbs[1], rawProbs[0], rawProbs[2]];
             const predictedClass = probabilities.reduce((bestIndex, value, index, values) => (
                 value > values[bestIndex] ? index : bestIndex
             ), 0);
@@ -535,12 +539,11 @@ map.on('click', (event) => {
         icon: L.divIcon({
             className: 'draft-pin',
             html: '<span></span>',
-            iconSize: [16, 16],
-            iconAnchor: [8, 8]
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
         }),
         keyboard: false,
         interactive: false
     }).addTo(map);
     contributionStatus.textContent = 'Offshore location selected. Complete the remaining fields to add your report.';
 });
-
