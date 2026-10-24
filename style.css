@@ -166,94 +166,145 @@ h1 span { color: #52d9bd; }
     font-size: 10px;
 }
 
-.legend-swatch {
-    width: 9px;
-    height: 9px;
-    border-radius: 3px;
+.contribution-panel {
+    margin-top: 8px;
+    padding: 20px 0 4px;
+    border-top: 1px solid rgba(166, 210, 209, 0.13);
 }
 
-.healthy { background: #19c7a3; }
-.risk { background: #f5b942; }
-.severe { background: #f06464; }
-
-.sample-note {
-    margin: auto 0 0;
-    padding-top: 18px;
-    color: #6e898b;
-    font-size: 10px;
-}
-
-.map-panel {
-    position: relative;
-    flex: 1 1 auto;
-    min-width: 0;
-    min-height: 100vh;
-    background: #10282f;
-}
-
-#map {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    background: #10282f;
-}
-
-.map-label {
-    position: absolute;
-    z-index: 400;
-    top: 22px;
-    left: 22px;
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    padding: 11px 14px;
-    border: 1px solid rgba(189, 221, 219, 0.15);
-    border-radius: 8px;
-    background: rgba(8, 28, 34, 0.9);
-    color: #e5f1ef;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1.1px;
-    pointer-events: none;
-}
-
-.live-dot { width: 7px; height: 7px; }
-
-.map-credit {
-    position: absolute;
-    z-index: 400;
-    right: 10px;
-    bottom: 0;
-    margin: 0;
-    padding: 4px 7px;
-    border-radius: 4px 4px 0 0;
-    background: rgba(8, 28, 34, 0.82);
-    color: #d3e1df;
+.contribution-kicker {
+    margin: 0 0 6px;
+    color: #69cdbd;
     font-size: 9px;
-    pointer-events: none;
+    font-weight: 700;
+    letter-spacing: 1.5px;
 }
 
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {
-    background: #102c33;
+.contribution-heading h2 {
+    margin: 0;
     color: #eaf4f3;
+    font-size: 17px;
+    font-weight: 600;
 }
 
-.leaflet-popup-content { line-height: 1.7; }
-.leaflet-popup-content strong { color: #55d9bd; }
+.contribution-intro {
+    margin: 6px 0 17px;
+    color: #8fa9aa;
+    font-size: 11px;
+    line-height: 1.5;
+}
 
-@media (max-width: 700px) {
-    #dashboard { flex-direction: column; }
-    #sidebar {
-        flex: 0 0 auto;
-        min-height: auto;
-        padding: 22px 20px 18px;
-    }
-    .eyebrow { margin-top: 17px; }
-    .intro { margin-bottom: 18px; }
-    .zone-panel { padding: 14px 0; }
-    .legend { display: none; }
-    .sample-note { display: none; }
-    .map-panel { flex: 1 1 auto; min-height: 55vh; }
-    .map-label { top: 12px; left: 12px; }
+#contribution-form {
+    display: grid;
+    gap: 14px;
+}
+
+.form-group { min-width: 0; margin: 0; }
+
+.form-fieldset {
+    padding: 0;
+    border: 0;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    color: #c9dcda;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.form-label > span {
+    margin-left: 5px;
+    color: #789394;
+    font-size: 9px;
+    font-weight: 400;
+}
+
+.input-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.form-field {
+    display: grid;
+    min-width: 0;
+    gap: 6px;
+    color: #8fa9aa;
+    font-size: 10px;
+}
+
+.form-field input,
+.form-input-file {
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid rgba(177, 218, 213, 0.16);
+    border-radius: 7px;
+    outline: none;
+    background: rgba(3, 16, 21, 0.45);
+    color: #eaf4f3;
+    font: inherit;
+    font-size: 11px;
+}
+
+.form-field input:focus,
+.form-input-file:focus-visible {
+    border-color: #52d9bd;
+    box-shadow: 0 0 0 2px rgba(82, 217, 189, 0.15);
+}
+
+.form-field input::placeholder { color: #5e797b; }
+
+.form-input-file {
+    padding: 6px;
+    color: #8fa9aa;
+}
+
+.form-input-file::file-selector-button {
+    margin-right: 9px;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 5px;
+    background: rgba(82, 217, 189, 0.13);
+    color: #8de6d4;
+    font: inherit;
+    cursor: pointer;
+}
+
+.score-field { margin-top: 12px; }
+
+.image-preview {
+    display: block;
+    width: 100%;
+    max-height: 130px;
+    margin-top: 9px;
+    border: 1px solid rgba(177, 218, 213, 0.14);
+    border-radius: 7px;
+    object-fit: cover;
+}
+
+.image-preview[hidden] { display: none; }
+
+.field-hint {
+    margin: 6px 0 0;
+    color: #6f8c8e;
+    font-size: 9px;
+    line-height: 1.5;
+}
+
+.submit-report {
+    min-height: 40px;
+    padding: 9px 13px;
+    border: 1px solid rgba(82, 217, 189, 0.38);
+    border-radius: 7px;
+    background: #147b6c;
+    color: #f2fffc;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background 140ms ease, transform 140ms ease;
 }
