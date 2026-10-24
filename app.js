@@ -28,23 +28,74 @@ const formatMetric = (value, digits) => (
 );
 
 function getZoneStatus(score) {
-    if (score < 1.5) return { label: 'Healthy', color: '#19c7a3' };
-    if (score < 2.5) return { label: 'At risk', color: '#f5b942' };
+    if (score < 2) return { label: 'Healthy', color: '#19c7a3' };
+    if (score <1) return { label: 'At risk', color: '#f5b942' };
     return { label: 'Severely affected', color: '#f06464' };
 }
 
+function getModelClassStatus(classScore) {
+    if (!Number.isFinite(classScore) || classScore < 0 || classScore > 2) {
+        return { label: 'Unknown class', color: '#8fa9aa' };
+    }
+    if (classScore < 0.5) return { label: 'Severely affected', color: '#f06464' };
+    if (classScore < 1.5) return { label: 'At risk', color: '#f5b942' };
+    return { label: 'Healthy', color: '#19c7a3' };
+}
+
+function getHealthClass(score) {
+    if (score = 2) return 2;
+    if (score = 1) return 1;
+    return 0;
+}
+
+function normalizeModelPrediction(prediction) {
+    if (!prediction) return null;
+
+    const probabilities = Array.isArray(prediction.probabilities)
+        ? prediction.probabilities
+        : [];
+    const predictedClass = Number.isInteger(prediction.predictedClass)
+        ? prediction.predictedClass
+        : prediction.classIndex;
+    const expectedClass = Number.isFinite(prediction.expectedClass)
+        ? prediction.expectedClass
+        : probabilities.length && probabilities.every(Number.isFinite)
+            ? probabilities.reduce((total, probability, index) => total + probability * index, 0)
+            : predictedClass;
+
+    if (!Number.isInteger(predictedClass) || !Number.isFinite(expectedClass)) return null;
+
+    return {
+        expectedClass,
+        predictedClass,
+        topProbability: Number.isFinite(prediction.topProbability)
+            ? prediction.topProbability
+            : probabilities[predictedClass] ?? 0,
+        probabilities
+    };
+}
+
 function addCommunityMarker(report, focus = false) {
+    const modelPrediction = normalizeModelPrediction(report.modelPrediction);
+    const modelStatus = modelPrediction
+        ? getModelClassStatus(modelPrediction.expectedClass)
+        : null;
     const marker = L.circleMarker([report.latitude, report.longitude], {
         radius: 7,
         color: '#f3fbf9',
         weight: 1.5,
-        fillColor: getZoneStatus(report.score).color,
+        fillColor: modelStatus ? modelStatus.color : getZoneStatus(report.score).color,
         fillOpacity: 1
     }).addTo(communityReports);
 
     marker.bindPopup(
         '<strong>Community report</strong><br>' +
-        `Health: ${report.score.toFixed(1)}<br>` +
+        (modelPrediction
+                        ? `AI health score: ${modelPrediction.expectedClass.toFixed(2)} (${modelStatus.label})<br>` +
+                            `Most likely class: ${modelPrediction.predictedClass} (${getModelClassStatus(modelPrediction.predictedClass).label})<br>` +
+              `Top class probability: ${(modelPrediction.topProbability * 100).toFixed(1)}%<br>` +
+              `Class probabilities: ${modelPrediction.probabilities.map((value, index) => `${index}: ${(value * 100).toFixed(1)}%`).join(', ')}<br>`
+            : `Health: ${report.score.toFixed(1)}<br>`) +
         `Temperature: ${formatMetric(report.temperature, 1)} °C<br>` +
         `Light: ${formatMetric(report.lumen, 0)} lux`
     );
@@ -52,22 +103,35 @@ function addCommunityMarker(report, focus = false) {
         meanScore: report.score,
         meanTemp: report.temperature,
         meanLumen: report.lumen,
-        dataCount: 1
+        dataCount: 1,
+        modelPrediction
     }));
     if (focus) map.panTo([report.latitude, report.longitude]);
 }
 
 function renderZoneInfo(properties) {
-    const status = getZoneStatus(properties.meanScore);
+    const modelPrediction = normalizeModelPrediction(properties.modelPrediction);
+    const classScore = modelPrediction
+        ? modelPrediction.expectedClass
+        : Number.isFinite(properties.meanClass) ? properties.meanClass : null;
+    const status = classScore === null
+        ? getZoneStatus(properties.meanScore)
+        : getModelClassStatus(classScore);
     zoneInfo.innerHTML = `
         <div class="zone-status" style="--status-color: ${status.color}">
             <span class="status-dot"></span>${status.label}
         </div>
         <div class="metrics">
             <div class="metric-card">
-                <span class="metrics-title">Average health score</span>
-                <strong class="metrics-value">${properties.meanScore.toFixed(2)}</strong>
+                <span class="metrics-title">${classScore === null ? 'Average health score' : modelPrediction ? 'AI health score' : 'Mean health score'}</span>
+                <strong class="metrics-value">${classScore === null ? properties.meanScore.toFixed(2) : classScore.toFixed(2)}</strong>
             </div>
+            ${modelPrediction ? `
+            <div class="metric-card">
+                <span class="metrics-title">Most likely class ${modelPrediction.predictedClass}: ${getModelClassStatus(modelPrediction.predictedClass).label}</span>
+                <strong class="metrics-value">${(modelPrediction.topProbability * 100).toFixed(1)}<small>%</small></strong>
+                <p class="data-count">Class probabilities: ${modelPrediction.probabilities.map((value, index) => `${index}: ${(value * 100).toFixed(1)}%`).join(', ')}</p>
+            </div>` : ''}
             <div class="metric-card">
                 <span class="metrics-title">Water temperature</span>
                 <strong class="metrics-value">${formatMetric(properties.meanTemp, 1)}<small>°C</small></strong>
@@ -150,6 +214,13 @@ function renderReadings(rawData, landMask) {
             };
 
             hex.properties.meanScore = average('score');
+            const classValues = readings
+                .map((point) => point.properties?.score)
+                .filter((value) => typeof value === 'number' && Number.isFinite(value))
+                .map(getHealthClass);
+            hex.properties.meanClass = classValues.length
+                ? classValues.reduce((total, value) => total + value, 0) / classValues.length
+                : null;
             hex.properties.meanTemp = average('temperature');
             hex.properties.meanLumen = average('lumen');
             hex.properties.dataCount = readings.length;
@@ -167,21 +238,25 @@ function renderReadings(rawData, landMask) {
         showMessage(`Showing ${waterReadings.length} offshore readings as markers. Select a colored water zone for its average.`);
         L.geoJSON(turf.featureCollection(waterHexes), {
             style: (feature) => {
-                const score = feature.properties.meanScore;
+                const classScore = feature.properties.meanClass;
                 return {
-                    fillColor: score === null ? '#65727d' : getZoneStatus(score).color,
+                    fillColor: feature.properties.meanClass === null
+                        ? '#65727d'
+                        : getModelClassStatus(classScore).color,
                     color: '#d8e5e9',
                     weight: 0.7,
-                    fillOpacity: score === null ? 0.08 : 0.72
+                    fillOpacity: feature.properties.meanClass === null ? 0.08 : 0.72
                 };
             },
             onEachFeature: (feature, layer) => {
                 const properties = feature.properties;
                 if (properties.meanScore === null) return;
+                const meanStatus = getModelClassStatus(properties.meanClass);
 
                 layer.bindPopup(
-                    `<strong>${getZoneStatus(properties.meanScore).label}</strong><br>` +
+                    `<strong>${meanStatus.label}</strong><br>` +
                     `Avg health: ${properties.meanScore.toFixed(2)}<br>` +
+                    `Mean health score: ${properties.meanClass.toFixed(2)}<br>` +
                     `Avg temperature: ${formatMetric(properties.meanTemp, 1)} °C<br>` +
                     `Avg light: ${formatMetric(properties.meanLumen, 0)} lm<br>` +
                     `Sensor readings: ${properties.dataCount}`
@@ -250,7 +325,31 @@ const contributionForm = document.getElementById('contribution-form');
 const photoInput = document.getElementById('coralImage');
 const photoPreview = document.getElementById('image-preview');
 const contributionStatus = document.getElementById('contribution-status');
+const scoreInput = document.getElementById('score');
+const scoreHelp = document.getElementById('score-help');
 let photoPreviewUrl = null;
+let coralModel = null;
+
+if (typeof tf === 'undefined') {
+    scoreHelp.textContent = 'TensorFlow.js did not load. Enter the observed score manually.';
+} else {
+    tf.loadGraphModel('model.json')
+        .then((model) => {
+            coralModel = model;
+            scoreInput.required = false;
+            scoreInput.disabled = true;
+            scoreInput.placeholder = 'AI calculated';
+            scoreHelp.textContent = 'The model predicts the score from the reef photo.';
+            contributionStatus.textContent = 'CoralEye image model loaded.';
+        })
+        .catch((error) => {
+            console.warn('The CoralEye GraphModel could not be loaded:', error);
+            scoreInput.required = true;
+            scoreInput.disabled = false;
+            scoreHelp.textContent = `${error.message} Enter the observed score manually for now.`;
+            contributionStatus.textContent = 'AI scoring is unavailable until the model files are complete. Manual scoring is available.';
+        });
+}
 
 photoInput.addEventListener('change', () => {
     const [photo] = photoInput.files;
@@ -268,7 +367,7 @@ photoInput.addEventListener('change', () => {
     photoPreview.hidden = false;
 });
 
-contributionForm.addEventListener('submit', (event) => {
+contributionForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     contributionStatus.classList.remove('is-success');
 
@@ -278,19 +377,71 @@ contributionForm.addEventListener('submit', (event) => {
     }
 
     const formData = new FormData(contributionForm);
-    const report = {
-        latitude: Number(formData.get('latitude')),
-        longitude: Number(formData.get('longitude')),
-        score: Number(formData.get('score')),
-        temperature: Number(formData.get('temperature')),
-        lumen: Number(formData.get('lumen'))
-    };
-    const point = turf.point([report.longitude, report.latitude]);
+    const latitude = Number(formData.get('latitude'));
+    const longitude = Number(formData.get('longitude'));
+    const point = turf.point([longitude, latitude]);
 
     if (turf.booleanPointInPolygon(point, currentLandMask)) {
         contributionStatus.textContent = 'That location is on land. Choose an offshore location to add a sea marker.';
         return;
     }
+
+    let score = Number(formData.get('score'));
+    let modelPrediction = null;
+    if (coralModel) {
+        contributionStatus.textContent = 'Analyzing reef photo...';
+        let inputTensor;
+        let prediction;
+
+        try {
+            await photoPreview.decode();
+            inputTensor = tf.browser.fromPixels(photoPreview)
+                .resizeNearestNeighbor([224, 224])
+                .expandDims(0)
+                .toFloat();
+            prediction = coralModel.execute(inputTensor);
+            const predictionTensor = Array.isArray(prediction) ? prediction[0] : prediction;
+            const probabilities = Array.from(await predictionTensor.data());
+            const predictedClass = probabilities.reduce((bestIndex, value, index, values) => (
+                value > values[bestIndex] ? index : bestIndex
+            ), 0);
+            const expectedClass = probabilities.reduce((total, probability, index) => (
+                total + probability * index
+            ), 0);
+            score = expectedClass;
+            modelPrediction = {
+                expectedClass,
+                predictedClass,
+                topProbability: probabilities[predictedClass],
+                probabilities
+            };
+        } catch (error) {
+            console.error('Inference error:', error);
+            scoreInput.disabled = false;
+            scoreInput.required = true;
+            scoreHelp.textContent = 'Image analysis failed. Enter the observed score manually.';
+            contributionStatus.textContent = 'Could not analyze the photo. You can enter the score manually.';
+            return;
+        } finally {
+            inputTensor?.dispose();
+            if (Array.isArray(prediction)) prediction.forEach((output) => output.dispose());
+            else prediction?.dispose();
+        }
+    }
+
+    if (!Number.isFinite(score)) {
+        contributionStatus.textContent = 'Enter a valid health score or upload a photo after the model loads.';
+        return;
+    }
+
+    const report = {
+        latitude,
+        longitude,
+        score,
+        temperature: Number(formData.get('temperature')),
+        lumen: Number(formData.get('lumen')),
+        modelPrediction
+    };
 
     try {
         const reports = JSON.parse(localStorage.getItem(reportStorageKey) || '[]');
@@ -311,7 +462,9 @@ contributionForm.addEventListener('submit', (event) => {
     photoPreview.removeAttribute('src');
     if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
     photoPreviewUrl = null;
-    contributionStatus.textContent = 'Report saved in this browser and added to the map. The photo was previewed only.';
+    contributionStatus.textContent = coralModel
+        ? `Report saved. AI health score ${modelPrediction.expectedClass.toFixed(2)} (${getModelClassStatus(modelPrediction.expectedClass).label}); most likely class ${modelPrediction.predictedClass} at ${(modelPrediction.topProbability * 100).toFixed(1)}%.`
+        : 'Report saved in this browser and added to the map. The photo was previewed only.';
     contributionStatus.classList.add('is-success');
 });
 
@@ -391,63 +544,3 @@ map.on('click', (event) => {
     contributionStatus.textContent = 'Offshore location selected. Complete the remaining fields to add your report.';
 });
 
-let coralModel =null;
-tflite.loadTFLiteModel('model.tflite').then((model) => {
-    coralModel = model;
-    document.getElementById('contribution-status').textContent = 'Coral health model loaded. You can now upload a photo to get a health score.';
-}).
-
-contributionForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    contributionStatus.classList.remove('is-success');
-    if (!currentLandMask){
-        contributionStatus.textContent = 'The coastline is still loading. Try again in a moment.';
-        return;
-    }
-    if (!coralModel || !photoInput.files.length) {
-        contributionStatus.textContent = 'Please upload a photo to get a health score.';
-        return;
-    }
-    
-    const tensor = tf.browser.fromPixels(photoPreview);
-.resizeNearestNeighbor([224, 224])
-    .expandDims()
-    .toFloat()
-    .div(tf.scalar(255.0));
-
-    const prediction = coralModel.predict(tensor);
-    const generatedScore = prediction.dataSync()[0];
-    
-    const formData = new FormData(contributionForm);
-    const report = {
-        latitude: Number(formData.get('latitude')),
-        longitude:(formData.get('longitude')),
-        score: generatedScore,
-        temperature: Number(formData.get('temperature')),
-        lumen: Number(formData.get('lumen'))
-    };
-
-    const point = turf.point([report.longitude, report.latitude]);
-    if (turf.booleanPointInPolygon(point, currentLandMask)) {
-        contributionStatus.textContent = 'That location is on land. Choose an offshore location to add a sea marker.';
-        return;
-    }
-
-    try {
-        const reports = JSON.parse(localStorage.getItem(reportStorageKey) || '[]');
-        reports.push(report);
-        localStorage.setItem(reportStorageKey, JSON.stringify(reports));
-    } catch {
-        contributionStatus.textContent = 'Could not save this report in browser storage.';
-        return;
-    }
-
-    AddComunityMarker(report, true);
-    contributionForm.reset();
-    photoPreview.hidden = true;
-    photoPreview.removeAttribute('src');
-    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
-    photoPreviewUrl = null;
-    contributionStatus.textContent = 'Report saved in this browser and added to the map. The photo was previewed only.';
-    contributionStatus.classList.add('is-success');
-});
