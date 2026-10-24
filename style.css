@@ -416,3 +416,12 @@ h1 span { color: #52d9bd; }
     .map-panel { flex: 1 1 auto; min-height: 55vh; }
     .map-label { top: 12px; left: 12px; }
 }
+.draft-pin span {
+    display: block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #f3fbf9;
+    border-radius: 50%;
+    background: #52d9bd;
+    box-shadow: 0 0 12px rgba(82, 217, 189, 0.9);
+}
