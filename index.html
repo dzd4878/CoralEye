@@ -24,10 +24,10 @@
             </section>
 
             <section class="legend" aria-label="Health score legend">
-                <h2>Health score</h2>
-                <div><span class="legend-swatch healthy"></span>Healthy <small>&lt; 1.5</small></div>
-                <div><span class="legend-swatch risk"></span>At risk <small>1.5–2.49</small></div>
-                <div><span class="legend-swatch severe"></span>Severely affected <small>≥ 2.5</small></div>
+                <h2>Health class</h2>
+                <div><span class="legend-swatch healthy"></span>Healthy <small>Class 2</small></div>
+                <div><span class="legend-swatch risk"></span>At risk <small>Class 1</small></div>
+                <div><span class="legend-swatch severe"></span>Severely affected <small>Class 0</small></div>
             </section>
             <section class="contribution-panel" aria-labelledby="contribute-title">
                 <div class="contribution-heading">
@@ -40,7 +40,7 @@
                         <label class="form-label" for="coralImage">Reef photo <span>Required</span></label>
                         <input type="file" id="coralImage" name="photo" class="form-input-file" accept="image/*" required>
                         <img id="image-preview" class="image-preview" alt="Selected reef photo preview" hidden>
-                        <p class="field-hint">Preview only; the photo is not uploaded.</p>
+                        <p class="field-hint">Preview only; the photo is not uploaded</p>
                     </div>
 
                     <fieldset class="form-group form-fieldset">
@@ -58,7 +58,7 @@
                         <label class="form-field score-field" for="score">
                             <span>Health score <small>0 to 3</small></span>
                             <input type="number" id="score" name="score" min="0" max="3" step="0.1" placeholder="1.2" required>
-                            <small class="field-hint">Enter the observed score manually; no model is connected yet.</small>
+                            <small id="score-help" class="field-hint">AI score will be used when the model is ready; otherwise enter the observed score manually.</small>
                         </label>
                     </fieldset>
 
@@ -92,6 +92,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
