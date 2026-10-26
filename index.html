@@ -11,7 +11,10 @@
 <body>
     <main id="dashboard">
         <aside id="sidebar">
-            <div class="brand-mark" aria-hidden="true">◈</div>
+            <div class="sidebar-top">
+                <div class="brand-mark" aria-hidden="true">◈</div>
+                <a href="home.html" class="sidebar-home-link" aria-label="Go to CoralEye homepage">Home</a>
+            </div>
             <p class="eyebrow">REEF MONITORING</p>
             <h1>Coral<span>Eye</span></h1>
             <p class="intro">A live view of reef conditions around Bali.</p>
@@ -28,6 +31,31 @@
                 <div><span class="legend-swatch healthy"></span>Healthy <small>Class 2</small></div>
                 <div><span class="legend-swatch risk"></span>At risk <small>Class 1</small></div>
                 <div><span class="legend-swatch severe"></span>Severely affected <small>Class 0</small></div>
+            </section>
+            <section class="data-panel" aria-labelledby="data-title">
+                <h2 id="data-title">Data overview</h2>
+                <div class="data-summary">
+                    <div><strong id="reading-count">—</strong><span>Readings</span></div>
+                    <div><strong id="average-score">—</strong><span>Mean score</span></div>
+                    <div><strong id="average-temperature">—</strong><span>Mean temp °C</span></div>
+                    <div><strong id="average-light">—</strong><span>Mean light lux</span></div>
+                    <div><strong id="report-count">0</strong><span>Reports</span></div>
+                </div>
+                <label class="form-field filter-field" for="health-filter">
+                    <span>Health class filter</span>
+                    <select id="health-filter" class="form-select">
+                        <option value="all">All health classes</option>
+                        <option value="2">Healthy</option>
+                        <option value="1">At risk</option>
+                        <option value="0">Severely affected</option>
+                    </select>
+                </label>
+                <label class="form-field import-field" for="csv-upload">
+                    <span>Import sensor readings</span>
+                    <input type="file" id="csv-upload" class="form-input-file" accept=".csv,text/csv">
+                </label>
+                <button class="export-data" id="export-data" type="button">Export all data as CSV</button>
+                <p id="data-status" class="field-hint" role="status" aria-live="polite"></p>
             </section>
             <section class="contribution-panel" aria-labelledby="contribute-title">
                 <div class="contribution-heading">
@@ -96,6 +124,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-
-
-
