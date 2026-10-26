@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="theme-color" content="#071b22">
+        <title>CoralEye | Decentralized Edge Computing Framework</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body class="home-page">
+        <header class="home-header">
+            <div class="home-container">
+                <nav class="home-nav" aria-label="Primary navigation">
+                    <a href="index.html" class="nav-link nav-link-primary">Open live dashboard</a>
+                    <a href="https://github.com/dzd4878/CoralEye" class="nav-link" target="_blank" rel="noopener">View on GitHub</a>
+                </nav>
+                <div class="hero-section">
+                    <div class="hero-copy">
+                        <p class="badge">Research Preview | July 2026</p>
+                        <h1>Coral<span>Eye</span></h1>
+                        <p class="subtitle">A decentralized edge computing framework for monitoring coral reef health.</p>
+                        <p class="author-meta">Gabriel-Andre Exbrayat &bull; Independent research</p>
+                        <div class="hero-actions">
+                            <a href="index.html" class="btn btn-primary">Open live dashboard</a>
+                            <a href="#abstract" class="btn btn-secondary">Read the abstract</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="home-container home-main">
+            <section class="metrics-grid" aria-label="Key performance metrics">
+                <div class="metric-box">
+                    <span class="metric-val">97%</span>
+                    <span class="metric-label">Overall Accuracy</span>
+                    <small>Held-out test set (n=636)</small>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-val">177.25 ms</span>
+                    <span class="metric-label">Inference Latency</span>
+                    <small>CPU-only proxy (~5.6 FPS)</small>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-val">3.5 MB</span>
+                    <span class="metric-label">INT8 Model Size</span>
+                    <small>75% footprint reduction</small>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-val">&gt;99%</span>
+                    <span class="metric-label">Time Saved</span>
+                    <small>vs. CPCe / LIT manual workflow</small>
+                </div>
+            </section>
+
+            <section id="abstract" class="content-card">
+                <h2>Abstract</h2>
+                <p>
+                    Coral reefs across the Coral Triangle are experiencing unprecedented thermal stress, and the window for effective local mitigation of bleaching events is often measured in days, not months. Yet the standard reef-monitoring pipeline—collecting benthic imagery via divers or remotely operated vehicles (ROVs) and manually annotating it—routinely takes weeks to complete, a delay we term the <strong>manual-annotation bottleneck</strong>.
+                </p>
+                <p>
+                    <strong>CoralEye</strong> is a decentralized, edge-optimized computer vision framework that diagnoses coral health in real time, designed to run entirely offline on consumer-grade hardware. Utilizing an INT8-quantized MobileNetV2 architecture trained on the Benthic Habitat Data (BHD) dataset, CoralEye classifies reef imagery into a three-class triage system: <strong>Healthy</strong>, <strong>Bleached</strong>, and <strong>Dead</strong>.
+                </p>
+            </section>
+
+            <section class="content-card">
+                <h2>Three-Class Triage Performance</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Class</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>F1-Score</th>
+                                <th>Support (n)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Bleached</strong></td>
+                                <td>0.95</td>
+                                <td>1.00</td>
+                                <td>0.97</td>
+                                <td>241</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Dead</strong></td>
+                                <td>1.00</td>
+                                <td>0.89</td>
+                                <td>0.94</td>
+                                <td>122</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Healthy</strong></td>
+                                <td>0.99</td>
+                                <td>1.00</td>
+                                <td>0.99</td>
+                                <td>273</td>
+                            </tr>
+                            <tr class="summary-row">
+                                <td><strong>Weighted Average</strong></td>
+                                <td><strong>0.98</strong></td>
+                                <td><strong>0.97</strong></td>
+                                <td><strong>0.97</strong></td>
+                                <td><strong>636</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="table-note">Note: The dominant failure mode is Dead-to-Bleached confusion (9.8% of dead images misclassified as bleached due to turf-algae overgrowth resembling pale coral tissue).</p>
+            </section>
+
+            <section class="content-grid-2">
+                <div class="content-card">
+                    <h3>Edge-First Design</h3>
+                    <p>
+                        By moving inference directly to the point of capture, CoralEye eliminates dependency on high-bandwidth connectivity or cloud compute budgets. This bridges the technology gap for under-resourced coastal communities and reef managers across Indonesia and the wider Coral Triangle.
+                    </p>
+                </div>
+                <div class="content-card">
+                    <h3>Technical Stack</h3>
+                    <ul class="tech-list">
+                        <li><strong>Architecture:</strong> MobileNetV2 (Inverted residuals &amp; linear bottlenecks)</li>
+                        <li><strong>Quantization:</strong> Post-training INT8 quantization via TensorFlow Lite</li>
+                        <li><strong>Deployment:</strong> Browser-ready TensorFlow.js GraphModel (<code>model.json</code> + <code>.bin</code>)</li>
+                        <li><strong>Geospatial:</strong> Leaflet.js + Turf.js coastline polygon masking</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <footer class="home-footer">
+            <div class="home-container footer-content">
+                <p>CoralEye Research Framework &bull; DOI: <a href="https://doi.org/10.21203/rs.3.rs-10438827/v1" target="_blank" rel="noopener">10.21203/rs.3.rs-10438827/v1</a></p>
+                <p>Licensed under Creative Commons Attribution 4.0 International.</p>
+            </div>
+        </footer>
+    </body>
+</html>
